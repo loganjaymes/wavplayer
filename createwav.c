@@ -48,8 +48,8 @@ int main() {
 	short int buf[buf_size] = {};
 
 	for (int i = 0; i < buf_size; ++i) {
-		buf[i] += (short int)(1000 * sin((2 * M_PI * 440.0 * i) / sample_rate));
-		buf[i] += (short int)(1000 * sin((2 * (3.0/2.0) * M_PI * 440.0 * i) / sample_rate));
+		buf[i] += (short int)(1000 * sin((M_PI * 440.0 * i) / sample_rate));
+		buf[i] += (short int)(1000 * sin(((3.0/2.0) * M_PI * 440.0 * i) / sample_rate));
 	}
 
 	// write to file
