@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <string.h>
 
+// keeping it simple (for now), only try and play WAVs made with the createwav.c file, since other chunks can exist (ie. metadata chunks). 
+// once done w/ basic implementation, parse chunnks via strcmp and go from there (fe. if chunk_id == "fmt " => parse fmt chunk
+// with that being said, even if going this route, can just ignore metadata chunks and not parse them since they are not integral to the file
+
 /*
 struct wav_header {
 	char riff[4];
