@@ -1,2 +1,2 @@
 run:
-	g++ -o main.c main `sdl2-config --cflags --libs`
+	gcc -std=c99 -g playwav.c
