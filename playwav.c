@@ -96,8 +96,11 @@ int main() {
 
 	// default sound device == 0,0
 	rc = snd_pcm_open(&playback_handle, "plughw:0,0", SND_PCM_STREAM_PLAYBACK, 0);
-
-
+	if (rc < 0) {
+		fprintf(stderr, "Could not open default audio device");
+		return 1;
+		// note if i move this to another file use exit to immediately kill program lel
+	}
 
 	// validation, may need to come at beginning of func to prevent buffer under/overflow errors...
 	/*
