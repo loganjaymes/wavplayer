@@ -42,6 +42,7 @@ int main() {
 	memcpy(wave, &buf[8], 4 * sizeof(buf[0]));
 
 	/* IMPORTANT! PAST ABOVE POINT CHUNKS MAY NOT ALWAYS BE IN THIS ORDER, BUT BECAUSE BASING OFF OF createwav.c DOING IT TJIS WAY SHOULD NOT RESULT IN UNDEFINED BHV */
+	// TODO: locate all chunks below and filter out others (since things like metadata do not matter)
 
 	char fmt[4];
 	memcpy(fmt, &buf[12], 4 * sizeof(buf[0]));
@@ -90,6 +91,7 @@ int main() {
 	wh.bytes_sec = bytes_sec;
 	
 	// use alsa
+	// TODO: Error handling
 	int rc = 0;
 	snd_pcm_t* playback_handle;
 	snd_pcm_hw_params_t* hw_params;
