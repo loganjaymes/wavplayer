@@ -31,3 +31,4 @@ Alongside this, the audio created and read by the `*.c` files is for mono (singl
 2. A slightly more nuanced version of above: https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
 3. ALSA/PCM documentation: https://vovkos.github.io/doxyrest/samples/alsa/group_PCM.html#doxid-group-p-c-m-1ga45d50841b307f2156fce1857bfac228c 
 4. VERY good ALSA library setup guide: https://alsamodular.sourceforge.net/alsa_programming_howto.html#sect02
+5. Another setup guide: https://www.linuxjournal.com/article/6735
