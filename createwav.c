@@ -1,8 +1,9 @@
-#include "stdio.h"
-#include "string.h"
-#include "math.h"
-#include "stdint.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <math.h>
 
+#define PI 3.14159265359f
 // define notes
 // to change octave, either div or mult by a factor of 2 (*2 => octave above, /2 => octave below)
 #define C4 261.63
@@ -65,12 +66,12 @@ int main() {
 	short int buf[buf_size] = {};
 
 	for (int i = 0; i < buf_size; ++i) {
-		buf[i] += (short int)(1000 * sin((M_PI * A3 * i) / sample_rate));
-		buf[i] += (short int)(1000 * sin((M_PI * E3 * i) / sample_rate));
+		buf[i] += (short int)(3000 * sin((2 * PI * F4 * i) / sample_rate));
+		buf[i] += (short int)(3000 * sin((2 * PI * C4 * i) / sample_rate));
 	}
 
 	// write to file
-	FILE* fp = fopen("pchordtest.wav", "wb");
+	FILE* fp = fopen("louderPChord.wav", "wb");
 	fwrite(&wh, 1, sizeof(wh), fp);
 	fwrite(buf, 2, buf_size, fp);
 	fclose(fp);
