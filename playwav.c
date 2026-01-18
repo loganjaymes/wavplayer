@@ -75,10 +75,18 @@ int main() {
 	int32_t data_len = 0;  // size of data chunk
 	memcpy(&data_len, &buf[40], sizeof(data_len));
 
-	const int dur_sec = data_len / (sample_rate * bytes_sample);
-	const int data_buf_size = sample_rate * dur_sec;  // buffer size 
-	short int* data_info = malloc(data_buf_size);
+	unsigned char* data_buf = malloc(data_len);
+	if (fread(data_buf, 1, data_len, fp) != data_len) {
+		fprintf(stderr, "Failde to read data");
+		free(data_buf);
+		fclose(fp);
+		return -1;
+	}
+	fclose(fp);
 
+	// const int dur_sec = data_len / (sample_rate * bytes_sample);
+	// const int data_buf_size = sample_rate * dur_sec;  // buffer size 
+	// short int* data_info = malloc(data_buf_size);
 
 	struct wav_header wh;
 
@@ -134,17 +142,14 @@ int main() {
 	// start playback
 	// snd_pcm_sframes_t snd_pcm_writei(playback_handle, data_info, num_frames);
 
-	short int* d_ptr = data_info;
+	unsigned char* d_ptr = data_buf;
 	snd_pcm_sframes_t frames_left = data_len / frames_size;
 	
-	assert(data != NULL);
-	assert(data_len > 0);
-
 	while (frames_left > 0) {
 		snd_pcm_sframes_t written = snd_pcm_writei(playback_handle, d_ptr, frames_left);
 
-		if (written == -EPIPE) {
-			snd_pcm_prepare(playback_handle);  // underrun
+		if (written == -EPIPE) {  // buffer underrun
+			snd_pcm_prepare(playback_handle);
 			continue;
 		} 
 		if (written < 0) {
@@ -185,7 +190,7 @@ int main() {
 
 	// TODO: validate wav file (ie. RIFF format)
 	// TODO: validate alsa device
-	free(data_info);
+	free(data_buf);
 	snd_pcm_hw_params_free(hw_params);
 	return 0;
 }
