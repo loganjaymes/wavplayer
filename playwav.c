@@ -61,10 +61,10 @@ int main() {
 
 	// may differ based on wav spec..
 	int32_t bytes_sec = 0;
-	memcpy(&bytes_sec, &buf[28], sizeof(bytes_sec));
+	memcpy(&bytes_sec, &buf[28], sizeof(bytes_sec));  // byterate
 	
 	int16_t bytes_sample = 0;
-	memcpy(&bytes_sample, &buf[32], sizeof(bytes_sample));
+	memcpy(&bytes_sample, &buf[32], sizeof(bytes_sample));  // blockalign
 	
 	int16_t bits_sample = 0;
 	memcpy(&bits_sample, &buf[34], sizeof(bits_sample));
@@ -74,6 +74,10 @@ int main() {
 	
 	int32_t data_len = 0;  // size of data chunk
 	memcpy(&data_len, &buf[40], sizeof(data_len));
+
+	const int dur_sec = data_len / (sample_rate * bytes_sample);
+	const int data_buf_size = sample_rate * dur_sec;  // buffer size 
+	short int* data_info = malloc(data_buf_size);
 
 
 	struct wav_header wh;
@@ -115,12 +119,44 @@ int main() {
 		return -1;
 	}
 
-	// may need to set formats, but at least half should be from the wh struct (fe. samplerate, pd, etc.). if that doesnt work its fine since ALSA should be able to convert sample rate
+#if 0
+	// https://vovkos.github.io/doxyrest/samples/alsa/group_PCM.html#doxid-group-p-c-m-1ga45d50841b307f2156fce1857bfac228c 
+	// configuring hw to run wave file not hw to defualt sheen
+	int pd = 2;
+	snd_pcm_uframes_t pd_size = 8192;
+	unsigned int latency = pd_size * pd / (sample_rate * bytes_sample); 
+	snd_pcm_set_params(playback_handle, SND_PCM_FORMAT_S16_LE, SND_PCM_ACCESS_RW_NONINTERLEAVED, num_channels, sample_rate, 1, latency); 
+
+	unsigned int num_frames = data_len / (sample_rate * bytes_sample);
+	snd_pcm_sframes_t snd_pcm_writen(playback_handle, data_info, num_frames);
+
+
+
+
+	snd_pcm_hw_params_set_format(playback_handle, hw_params, SND_PCM_FORMAT_S32_LE);  // checked w/ pw-top 
+	snd_pcm_hw_params_set_access(playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
+	snd_pcm_hw_params_set_channels(playback_handle, hw_params, num_channels);
+	
+	// set sample rate (most audio files are 44100, but my soundcard is 48000 for playback
+	int hw_rate = sample_rate;
+	snd_pcm_hw_params_set_rate_near(playback_handle, hw_params, &hw_rate, 0);
+	if (hw_rate != sample_rate) {
+		fprintf(stderr, "The rate %d is unsupported, using %d instead\n", hw_rate, sample_rate);  // not an issue, since most modern hardware can support most common sample rates (ie. 44100, 48000, etc.)
+	}
+
+
+	// no idea
+	int periods = 2;
+	snd_pcm_hw_params_set_periods(playback_handle, hw_params, periods, 0)
+
 	
 
+	snd_pcm_uframes_t pd_size = 8192;  // bytes
+#endif
 
 	// TODO: validate wav file (ie. RIFF format)
 	// TODO: validate alsa device
+	free(data_info);
 	snd_pcm_hw_params_free(hw_params);
 	return 0;
 }
