@@ -75,7 +75,7 @@ int main() {
 	int32_t data_len = 0;  // size of data chunk
 	memcpy(&data_len, &buf[40], sizeof(data_len));
 
-	unsigned char* data_buf = malloc(data_len);
+	unsigned char* data_buf = malloc(data_len);  // new buffer since header buffer is 44 bytes (cuz its the header duh)
 	if (fread(data_buf, 1, data_len, fp) != data_len) {
 		fprintf(stderr, "Failde to read data");
 		free(data_buf);
@@ -83,10 +83,6 @@ int main() {
 		return -1;
 	}
 	fclose(fp);
-
-	// const int dur_sec = data_len / (sample_rate * bytes_sample);
-	// const int data_buf_size = sample_rate * dur_sec;  // buffer size 
-	// short int* data_info = malloc(data_buf_size);
 
 	struct wav_header wh;
 
@@ -133,14 +129,13 @@ int main() {
 	snd_pcm_uframes_t pd_size = 8192;
 	int16_t frames_size = num_channels * bytes_sample;  // alsa reads in frames (segments of wav), not samples or bytes
 	
-	//unsigned int latency = pd_size * pd / (sample_rate * bytes_sample); 
-	unsigned int latency = 500000;
+	unsigned int latency = 500000;  // can be hardcoded since its not real time, should be .5ms
+									// can be adjustd using buf sze and pd size i think (how i had it before), but thats a TODO task
 
 	snd_pcm_set_params(playback_handle, SND_PCM_FORMAT_S16_LE, SND_PCM_ACCESS_RW_INTERLEAVED, num_channels, sample_rate, 1, latency); 
 
 	unsigned int num_frames = data_len / frames_size;
 	// start playback
-	// snd_pcm_sframes_t snd_pcm_writei(playback_handle, data_info, num_frames);
 
 	unsigned char* d_ptr = data_buf;
 	snd_pcm_sframes_t frames_left = data_len / frames_size;
@@ -149,11 +144,11 @@ int main() {
 		snd_pcm_sframes_t written = snd_pcm_writei(playback_handle, d_ptr, frames_left);
 
 		if (written == -EPIPE) {  // buffer underrun
-			snd_pcm_prepare(playback_handle);
+			snd_pcm_prepare(playback_handle);  // prepare for write
 			continue;
 		} 
 		if (written < 0) {
-			fprintf(stderr, "write error: %s\n", snd_strerror(written));
+			fprintf(stderr, "Error writing frame(s)");
 			break;
 		}
 
@@ -161,32 +156,7 @@ int main() {
 		frames_left -= written;
 	}
 
-
-	snd_pcm_drain(playback_handle);
-
-	
-
-#if 0
-	snd_pcm_hw_params_set_format(playback_handle, hw_params, SND_PCM_FORMAT_S32_LE);  // checked w/ pw-top 
-	snd_pcm_hw_params_set_access(playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
-	snd_pcm_hw_params_set_channels(playback_handle, hw_params, num_channels);
-	
-	// set sample rate (most audio files are 44100, but my soundcard is 48000 for playback
-	int hw_rate = sample_rate;
-	snd_pcm_hw_params_set_rate_near(playback_handle, hw_params, &hw_rate, 0);
-	if (hw_rate != sample_rate) {
-		fprintf(stderr, "The rate %d is unsupported, using %d instead\n", hw_rate, sample_rate);  // not an issue, since most modern hardware can support most common sample rates (ie. 44100, 48000, etc.)
-	}
-
-
-	// no idea
-	int periods = 2;
-	snd_pcm_hw_params_set_periods(playback_handle, hw_params, periods, 0)
-
-	
-
-	snd_pcm_uframes_t pd_size = 8192;  // bytes
-#endif
+	snd_pcm_drain(playback_handle);  // drains all remaining frames, while drop just cuts off instantly
 
 	// TODO: validate wav file (ie. RIFF format)
 	// TODO: validate alsa device
