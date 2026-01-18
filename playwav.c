@@ -160,6 +160,7 @@ int main() {
 
 	// TODO: validate wav file (ie. RIFF format)
 	// TODO: validate alsa device
+	// TODO: stereo playback (see https://alsamodular.sourceforge.net/alsa_programming_howto.html#sect02) 
 	free(data_buf);
 	snd_pcm_hw_params_free(hw_params);
 	return 0;

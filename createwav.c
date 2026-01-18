@@ -54,6 +54,7 @@ int main() {
 	wh.bytes_sample = (wh.bits_sample * wh.num_channels) / 8;
 	wh.bytes_sec = wh.sample_rate * wh.bytes_sample;
 
+	// TODO: split chords by second(s) (or some other metric)
 	const int dur_sec = 8; // audio len
 	const int buf_size = sample_rate * dur_sec;
 
