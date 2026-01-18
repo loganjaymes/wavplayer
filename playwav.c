@@ -137,19 +137,18 @@ int main() {
 	snd_pcm_set_params(playback_handle, SND_PCM_FORMAT_S16_LE, SND_PCM_ACCESS_RW_INTERLEAVED, num_channels, sample_rate, 1, latency); 
 
 	unsigned int num_frames = data_len / frames_size;
-	// start playback
-
 	unsigned char* d_ptr = data_buf;
 	snd_pcm_sframes_t frames_left = data_len / frames_size;
 	
+	// start playback/writing frames
 	while (frames_left > 0) {
 		snd_pcm_sframes_t written = snd_pcm_writei(playback_handle, d_ptr, frames_left);
+		// may need to account for EOF on input like in linuxjournal ref, but unsure
 
 		if (written == -EPIPE) {  // buffer underrun
-			snd_pcm_prepare(playback_handle);  // prepare for write
+			snd_pcm_prepare(playback_handle);  // reinit stream (essentially error handling, could have used snd_pcm_recover() as well
 			continue;
-		} 
-		if (written < 0) {
+		} else if (written < 0) {
 			fprintf(stderr, "Error writing frame(s)");
 			break;
 		}
@@ -158,7 +157,8 @@ int main() {
 		frames_left -= written;
 	}
 
-	snd_pcm_drain(playback_handle);  // drains all remaining frames, while drop just cuts off instantly
+	snd_pcm_drain(playback_handle);  // drains all remaining frames
+	snd_pcm_close(playback_handle);  // actually close it 
 
 	// TODO: validate wav file (ie. RIFF format)
 	// TODO: validate alsa device
