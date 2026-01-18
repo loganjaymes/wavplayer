@@ -28,7 +28,7 @@ struct wav_header {
 int main() {
 	// open wav & read
 	char buf[44];  // header is 44 bytes
-	FILE* fp = fopen("test.wav", "rb");
+	FILE* fp = fopen("pchordtest.wav", "rb");
 	fread(buf, sizeof(buf), 1, fp);
 
 	char riff[4];  // extra byte for null terminator, not sure how this will work for populating wh
